@@ -1,0 +1,16 @@
+Manual (For Up Referees)
+·      Press the right button before signalling for the first service of a set. Press the button before signalling for a service mid-set if the referee’s last signal was a point scored and has not given clearance for service for more than thirteen seconds
+·      Press the left button before signalling for a timeout
+·      Press the middle button to undo the last scored point
+·      Gloves must always be worn during a game
+
+Setup (must be done at the start of every game)*
+1.     Plug the scoreboard into a computer
+2.     Plug the camera into a computer
+3.     Run the ESP-32 CAM Setup program to find the link of the web server that the camera is live streaming on
+4.     Copy the link of the live stream into the Colour Picker program (steps 3/4 are optional if the Wi-Fi network from the previous game stayed the same)
+5.     Run the Colour Picker program and write down values of the colour of the gloves
+6.     Copy the link and values into the Main Python Code program (steps 5/6 are optional if the environment/lighting the camera is in has not changed from the previous game)
+7.     Run the Main Python Code program and note down the average coordinates for the referee’s fully extended arms
+8.     Add the coordinates into the Main Python Code program (steps 7/8 are optional if the camera is in the same position as it was in the previous game and the referee is the same height and has the same arm span as the referee in the previous game)
+9.     Run the Main Python Code program
