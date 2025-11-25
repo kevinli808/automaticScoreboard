@@ -5,17 +5,16 @@ import time
 import serial
 import threading
 
-
-# adapted from https://how2electronics.com/color-detection-tracking-with-esp32-cam-opencv/
+# partially adapted from https://how2electronics.com/color-detection-tracking-with-esp32-cam-opencv/
 
 def nothing(x):
     pass
-
 
 url = 'http://10.0.0.68/cam-lo.jpg'
 ##'''cam.bmp / cam-lo.jpg /cam-hi.jpg / cam.mjpeg '''
 cv2.namedWindow("live transmission", cv2.WINDOW_AUTOSIZE)
 
+##These values represent range of the colour of the glove for detection 
 l_h, l_s, l_v = 128, 54, 0
 u_h, u_s, u_v = 222, 149, 251
 ser = serial.Serial('COM6', 9800, timeout=0.1, write_timeout=0.1)
@@ -27,60 +26,60 @@ class ConnectingToArduino:
         # self._firstServe = None
         self._betweensets = None
 
-    # def firstServeChecker(self):
-    #     t = threading.Timer(3, self.ThreeSecondDelay)
-    #     t.start()
-    #     self._firstServe = 2
-
+    ##the time between sets where AutoScore will no temporarily stop detecting for colour (nothing is happening on the court)
+    ##starts the timer on the scoreboard for 3 minutes
     def timeBetweenSets(self):
         t = threading.Timer(17, self.delayBetweenSets)
         t.start()
         self._betweensets = 1
 
+    ##allows for a 10 second pause in case of an unforseen in-game error/event  
     def TenSecondDelay(self):
         self._last_func = None
 
-    # def ThreeSecondDelay(self):
-    #     self._firstServe = None
-
+    ##sends pause to Arduino Script
     def delayBetweenSets(self):
         self._betweensets = None
         ser.write(b'N')
 
+    ##sends the current coordinates 
     def detectColourPos(self):
-        # SerialMonitor = ser.read(size=1)
-        # print(cy)
-        # print(cx)
-        # if self._firstServe == 2 or self._firstServe == 0:
-        #     print("First Serve")
+        ##if statement checks if there is currently a set being played (to ensure the referee is actually signalling and not doing something else)
         if self._betweensets == 1:
             print("Between Sets")
-        if self._betweensets != 1:
+        else:
+            ##there are two regions (one for each side) that the referee's hand will be in to signal for a point
+            ##the left side will now be called X
+            ##the right side will be called Y
+
+            ##NOTE: DESPITE THE NAMES, X AND Y DO NOT REFER TO THE ORDERED PAIR (X,Y) USED FOR COORDS
+
+            ##See if within specified y-axis range
             if 175 >= cy >= 125:
+                ##check if within specified x-axis range for the left (X) side
                 if 75 >= cx >= 0:
-                    # print(SerialMonitor)
-                    # if SerialMonitor == b'9':
-                    #     self._firstServe = 0
-                    # else:
                     print('detected x')
                     ConnectionToC.connectionToArduinoX()
+                    ##check if within specified x-axis range for the right (Y) side
                 if 315 >= cx >= 250:
-                    # if SerialMonitor == b'9':
-                    #     self._firstServe = 0
-                    # else:
                     print('detected y')
                     ConnectionToC.connectionToArduinoY()
 
+    ##The next two functions are called when the referee's hand has entered the specified region   
     def connectionToArduinoX(self):
+        ##this if statement checks if the left hand region had just been called 
         if self._last_func == 'connectionToArduinoX':
             print('ConnectionToArduinoX called multiple times in succession')
         else:
+            ##if if the left hand region hasn't be called, the character 'X' is sent ot the C program to reflect a scoreboard change
+            ##a ten second timer is started where points cannot be registered. This accounts for the time it takes to set up a new point where the referee might move their hand into the region that detects points for reasons side from signalling 
             ser.write(b'X')
             t = threading.Timer(2, self.TenSecondDelay)
             t.start()
             self._last_func = 'connectionToArduinoX'
 
     def connectionToArduinoY(self):
+        ##same as the left hand region but for the right
         if self._last_func == 'connectionToArduinoY':
             print('ConnectionToArduinoY called multiple times in succession')
         else:
@@ -92,7 +91,10 @@ class ConnectingToArduino:
 
 ConnectionToC = ConnectingToArduino()
 
-
+##read incoming numbers from buttons sent through Arduino Script
+## 5 = a set just ended and there is now a 3 minute break
+## 6 = a time out was just called and there is now a 1 minute break
+## 9 = a point was just scored and there is a 3 second "cooldown" to allow for the next serve to be set up
 def ArduinoSerialMonitor():
     serialMonitor = ser.read(size=1)
     # print(SerialMonitor)
@@ -103,7 +105,7 @@ def ArduinoSerialMonitor():
     if serialMonitor == b'9':
         time.sleep(3)
 
-
+##sets up and reads data from camera
 while True:
     img_resp = urllib.request.urlopen(url)
     imgnp = np.array(bytearray(img_resp.read()), dtype=np.uint8)
