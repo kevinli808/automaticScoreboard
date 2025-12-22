@@ -1,0 +1,218 @@
+#include <TM1637Display.h>
+#include <ctype.h>
+#include <SimpleTimer.h>
+#include "SevSeg.h"
+//include libraries
+
+#define CLK1 A5
+#define DIO1 A4
+#define CLK2 A2
+#define DIO2 A4
+#define CLK3 A3
+#define CLK4 A1
+#define DIO4 A4
+#define DIO3 A4
+#define DIO5 A4
+#define CLK5 A0
+#define Buzzer 12
+#define TimeoutButton 10
+#define undoButton 13
+#define delayButton 11
+//first and second displays are the team scores
+//third and forth displays are the sets won
+//fifth display is the timer for timeouts and the time between sets
+
+SevSeg sev;
+int incomingByte;
+int lastScore;
+TM1637Display display1(CLK1, DIO1);
+TM1637Display display2(CLK2, DIO2);
+TM1637Display display3(CLK3, DIO3);
+TM1637Display display4(CLK4, DIO4);
+TM1637Display display5(CLK5, DIO5);
+//defines pins for each display
+int firstDisplayOnesPlace = 0;
+//int firstDisplayTensPlace = 0;
+int secondDisplayOnesPlace = 0;
+//int secondDisplayTensPlace = 0;
+int thirdDisplayOnesPlace = 0;
+int forthDisplayOnesPlace = 0;
+int fifthDisplayOnesPlace = 0;
+bool onlyOnce = true;
+uint8_t empty[] = { 0x00, 0x00, 0x00, 0x00 };
+
+void displaySetup() {
+  display1.setBrightness(1);
+  display2.setBrightness(1);
+  display3.setBrightness(1);
+  display4.setBrightness(1);
+  display5.setBrightness(1);
+  display2.clear();
+  display1.clear();
+  display3.clear();
+  display4.clear();
+  display5.clear();
+  display1.setSegments(empty);
+  display2.setSegments(empty);
+  display3.setSegments(empty);
+  display4.setSegments(empty);
+  display5.setSegments(empty);
+  //sets up all the displays
+}
+
+void setup()
+{
+  pinMode(Buzzer, OUTPUT);
+  pinMode(TimeoutButton, INPUT_PULLUP);
+  pinMode(delayButton, INPUT_PULLUP);
+  pinMode(undoButton, INPUT_PULLUP);
+  Serial.begin(9600);
+  displaySetup();
+  byte numDigits = 1;
+  byte digitPins[] = {};
+  byte segmentPins[] = {6, 5, 2, 3, 4, 7, 8, 9};
+  bool resistorsOnSegments = true;
+
+  byte hardwareConfig = COMMON_CATHODE;
+  sev.begin(hardwareConfig, numDigits, digitPins, segmentPins, resistorsOnSegments);
+  sev.setBrightness(90);
+}
+
+void timeBetweenSets () {
+  Serial.println("5");
+  int timeBetweenSet = 180;
+  for (timeBetweenSet; timeBetweenSet >= 0; timeBetweenSet--) {
+    display5.showNumberDec(timeBetweenSet, true);
+    delay(1000);
+  }
+
+  Serial.println("the next set has started");
+  onlyOnce = true;
+  lastScore = 0;
+  digitalWrite(Buzzer, HIGH);
+  delay(1000);
+  digitalWrite(Buzzer, LOW);
+}
+
+void loop()
+{
+  if (2 > Serial.available() > 0) {
+    incomingByte = Serial.read();
+  }
+  if (incomingByte == 'X') {
+    display1.showNumberDec(++firstDisplayOnesPlace, true);
+    Serial.println("1");
+    lastScore = 1;
+    onlyOnce = true;
+  }
+  else if (incomingByte == 'Y') {
+    display2.showNumberDec(++secondDisplayOnesPlace, true);
+    Serial.println("2");
+    lastScore = 2;
+    onlyOnce = true;
+  }
+  else if (incomingByte == 'N') {
+    firstDisplayOnesPlace = 0;
+    secondDisplayOnesPlace = 0;
+    display1.showNumberDec(firstDisplayOnesPlace, true);
+    display2.showNumberDec(secondDisplayOnesPlace, true);
+  }
+  else if (incomingByte == 'C') {
+    display3.showNumberDec(++thirdDisplayOnesPlace, true);
+    Serial.println("3");
+  }
+  else if (incomingByte == 'V') {
+    display4.showNumberDec(++forthDisplayOnesPlace, true);
+    Serial.println("4");
+  }
+
+  if (digitalRead(delayButton) == LOW) {
+    if (onlyOnce == true) {
+      Serial.println("9");
+      onlyOnce = false;
+    }
+  }
+
+  if (firstDisplayOnesPlace >= 25 or secondDisplayOnesPlace >= 25) {
+    float differenceInScore = firstDisplayOnesPlace - secondDisplayOnesPlace;
+    if (differenceInScore <= -2 or differenceInScore >= 2) {
+      if (differenceInScore >= 2) {
+        //sets team scores to zero and adds a point to team1 (team using display 1 and 3)
+        digitalWrite(Buzzer, HIGH);
+        delay(500);
+        digitalWrite(Buzzer, LOW);
+        Serial.println("Point for team 1");
+        timeBetweenSets();
+        firstDisplayOnesPlace = 0;
+        secondDisplayOnesPlace = 0;
+        display1.showNumberDec(firstDisplayOnesPlace, true);
+        display2.showNumberDec(secondDisplayOnesPlace, true);
+        display3.showNumberDec(++thirdDisplayOnesPlace, true);
+
+      }
+      else if (differenceInScore <= 2) {
+        //sets team scores to zero and adds a point to team2 (team using display 2 and 4)
+        digitalWrite(Buzzer, HIGH);
+        delay(500);
+        digitalWrite(Buzzer, LOW);
+        Serial.println("Point for team 2");
+        timeBetweenSets();
+        firstDisplayOnesPlace = 0;
+        secondDisplayOnesPlace = 0;
+        display1.showNumberDec(firstDisplayOnesPlace, true);
+        display2.showNumberDec(secondDisplayOnesPlace, true);
+        display3.showNumberDec(++forthDisplayOnesPlace, true);
+      }
+    }
+  }
+
+  //change 3 to 2 if you're playing best out of 3 sets instead of best of 5 sets
+  if (thirdDisplayOnesPlace == 3) {
+    digitalWrite(Buzzer, HIGH);
+    delay(1500);
+    digitalWrite(Buzzer, LOW);
+    Serial.println("Home has won");
+    Serial.println("Game has concluded");
+    delay(100000);
+  }
+
+  if (forthDisplayOnesPlace == 3) {
+    digitalWrite(Buzzer, HIGH);
+    delay(1500);
+    digitalWrite(Buzzer, LOW);
+    Serial.println("Guest has won");
+    Serial.println("Game has concluded");
+    delay(100000);
+  }
+
+  if (digitalRead(TimeoutButton) == LOW) {
+    Serial.println("6");
+    int timeout = 60;
+    onlyOnce = true;
+    digitalWrite(Buzzer, HIGH);
+    delay(1000);
+    digitalWrite(Buzzer, LOW);
+    for (timeout; timeout >= 0; timeout--) {
+      display5.showNumberDec(timeout, true);
+      delay(1000);
+    }
+    digitalWrite(Buzzer, HIGH);
+    delay(1000);
+    digitalWrite(Buzzer, LOW);
+  }
+
+  if (digitalRead(undoButton) == LOW) {
+    if (lastScore == 1) {
+      display1.showNumberDec(--firstDisplayOnesPlace, true);
+      lastScore = 0;
+    }
+    if (lastScore == 2) {
+      display2.showNumberDec(--secondDisplayOnesPlace, true);
+      lastScore = 0;
+    }
+  }
+
+  float periodNum = forthDisplayOnesPlace + thirdDisplayOnesPlace + 1;
+  sev.setNumber(periodNum);
+  sev.refreshDisplay();
+}
