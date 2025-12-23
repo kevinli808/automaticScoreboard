@@ -1,7 +1,5 @@
 ### **Design**
 
-&nbsp;
-
 &nbsp;	This project is divided into two parts—C++ and Python. C++ is used to interact with the Arduino Uno, the scoreboard, and the buttons whilst Python is used for image processing. The two programs can communicate through the Arduino IDE’s serial monitor. This machine requires three programs for set up, two in C++ and one in Python, and requires one Python program to run.
 
 
@@ -29,6 +27,7 @@
 **Figure 5.** 
 
 *Steps the program takes to determine if a set has ended*
+<img width="975" height="184" alt="image" src="https://github.com/user-attachments/assets/ac686f33-1819-458c-9793-52728c9fa9ab" />
 
 &nbsp;
 
@@ -45,6 +44,7 @@
 **Figure 6.** 
 
 *Steps the program takes to determine if a point is scored*
+<img width="644" height="870" alt="image" src="https://github.com/user-attachments/assets/872316fb-8906-4128-8782-6929be98fd93" />
 
 &nbsp;
 
@@ -53,6 +53,7 @@
 
 
 ***1***Refer to technical difficulties for the purpose of the right button
+
 
 
 
