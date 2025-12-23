@@ -118,31 +118,30 @@ void loop()
     incomingByte = Serial.read();
   }
 
+  //adds an point to the first display if 'X' is received 
   if (incomingByte == 'X') {
     display1.showNumberDec(++firstDisplayOnesPlace, true);
     Serial.println("1");
+
+    //stores last score for undo function and to prevent multiple inputs
     lastScore = 1;
     onlyOnce = true;
   }
+  //adds a point to the second display if 'Y' is received
   else if (incomingByte == 'Y') {
     display2.showNumberDec(++secondDisplayOnesPlace, true);
     Serial.println("2");
+
+    //stores last score for undo function and to prevent multiple inputs
     lastScore = 2;
     onlyOnce = true;
   }
+  //resets both team scores if 'N' is received (set ended)
   else if (incomingByte == 'N') {
     firstDisplayOnesPlace = 0;
     secondDisplayOnesPlace = 0;
     display1.showNumberDec(firstDisplayOnesPlace, true);
     display2.showNumberDec(secondDisplayOnesPlace, true);
-  }
-  else if (incomingByte == 'C') {
-    display3.showNumberDec(++thirdDisplayOnesPlace, true);
-    Serial.println("3");
-  }
-  else if (incomingByte == 'V') {
-    display4.showNumberDec(++forthDisplayOnesPlace, true);
-    Serial.println("4");
   }
 
   //delay button to prevent multiple inputs 
@@ -159,13 +158,18 @@ void loop()
     if (differenceInScore <= -2 or differenceInScore >= 2) {
       if (differenceInScore >= 2) {
         //sets team scores to zero and adds a point to team1 (team using display 1 and 3)
+        //sounds buzzer
         digitalWrite(Buzzer, HIGH);
         delay(500);
         digitalWrite(Buzzer, LOW);
+
+        //pauses program
         Serial.println("Point for team 1");
         timeBetweenSets();
         firstDisplayOnesPlace = 0;
         secondDisplayOnesPlace = 0;
+
+        //updates displays
         display1.showNumberDec(firstDisplayOnesPlace, true);
         display2.showNumberDec(secondDisplayOnesPlace, true);
         display3.showNumberDec(++thirdDisplayOnesPlace, true);
@@ -173,13 +177,18 @@ void loop()
       }
       else if (differenceInScore <= 2) {
         //sets team scores to zero and adds a point to team2 (team using display 2 and 4)
+        //sounds buzzer
         digitalWrite(Buzzer, HIGH);
         delay(500);
         digitalWrite(Buzzer, LOW);
+
+        //pauses program
         Serial.println("Point for team 2");
         timeBetweenSets();
         firstDisplayOnesPlace = 0;
         secondDisplayOnesPlace = 0;
+
+        //updates displays
         display1.showNumberDec(firstDisplayOnesPlace, true);
         display2.showNumberDec(secondDisplayOnesPlace, true);
         display3.showNumberDec(++forthDisplayOnesPlace, true);
