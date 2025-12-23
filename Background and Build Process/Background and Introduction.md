@@ -9,9 +9,7 @@
 **Figure 1.**
 
 *Signals*
-
-!\[Signals](https://worldofvolley.com/wp-content/uploads/2021/05/unnamed-file-2.gif)
-
+<img width="630" height="744" alt="image" src="https://github.com/user-attachments/assets/4256d644-813a-437f-a2fe-46b6fe6a03b9" />
 *Note*: Listed above are all the volleyball referee hand signals (WoV, 2016)
 
  
@@ -19,9 +17,7 @@
 **Figure 2.** 
 
 *Understanding the Officials' Hand Signals*
-
-!\[Officials' Hand Signals](https://pbs.twimg.com/media/CnNAWSyW8AAvOPR?format=jpg&name=medium)
-
+<img width="1035" height="800" alt="image" src="https://github.com/user-attachments/assets/286ce3e5-547e-474a-a9ce-6f651d05e521" />
 *Note*: Listed above is a more detailed version of the most common volleyball referee gestures (Volleyball Coaching, 2016)
 
 
@@ -75,6 +71,7 @@ WoV. (2016, July 26). Signals \[Illustration]. WorldofVolley. Retrieved from htt
 ##### *Videos*
 
 Robojax. (2018, October 31). Using multiple TM1637 4 digits LED Display with Arduino \[Video]. YouTube. Retrieved from https://www.youtube.com/watch?v=27KjMfPH1dk
+
 
 
 
