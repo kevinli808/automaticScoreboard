@@ -10,8 +10,10 @@ import threading
 def nothing(x):
     pass
 
-url = 'http://10.0.0.68/cam-lo.jpg'
-##'''cam.bmp / cam-lo.jpg /cam-hi.jpg / cam.mjpeg '''
+##url from ESP32-CAM Set-up program
+url = 'http:// INSERT IP /cam-lo.jpg'
+
+##create window for live transmission
 cv2.namedWindow("live transmission", cv2.WINDOW_AUTOSIZE)
 
 ##These values represent range of the colour of the glove for detection 
@@ -19,11 +21,10 @@ l_h, l_s, l_v = 128, 54, 0
 u_h, u_s, u_v = 222, 149, 251
 ser = serial.Serial('COM6', 9800, timeout=0.1, write_timeout=0.1)
 
-
+##class to handle connection to Arduino Script
 class ConnectingToArduino:
     def __init__(self):
         self._last_func = None
-        # self._firstServe = None
         self._betweensets = None
 
     ##the time between sets where AutoScore will no temporarily stop detecting for colour (nothing is happening on the court)
@@ -52,7 +53,7 @@ class ConnectingToArduino:
             ##the left side will now be called X
             ##the right side will be called Y
 
-            ##NOTE: DESPITE THE NAMES, X AND Y DO NOT REFER TO THE ORDERED PAIR (X,Y) USED FOR COORDS
+            ##NOTE: X AND Y DO NOT REFER TO THE ORDERED PAIR (X,Y) USED FOR COORDS
 
             ##See if within specified y-axis range
             if 175 >= cy >= 125:
@@ -71,7 +72,7 @@ class ConnectingToArduino:
         if self._last_func == 'connectionToArduinoX':
             print('ConnectionToArduinoX called multiple times in succession')
         else:
-            ##if if the left hand region hasn't be called, the character 'X' is sent ot the C program to reflect a scoreboard change
+            ##if if the left hand region hasn't be called, the character 'X' is sent to the C program to reflect a scoreboard change
             ##a ten second timer is started where points cannot be registered. This accounts for the time it takes to set up a new point where the referee might move their hand into the region that detects points for reasons side from signalling 
             ser.write(b'X')
             t = threading.Timer(2, self.TenSecondDelay)
@@ -107,41 +108,56 @@ def ArduinoSerialMonitor():
 
 ##sets up and reads data from camera
 while True:
+    ##capture image from ESP32-CAM
     img_resp = urllib.request.urlopen(url)
     imgnp = np.array(bytearray(img_resp.read()), dtype=np.uint8)
     frame = cv2.imdecode(imgnp, -1)
 
+    ##convert to HSV
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
+    ##get current positions of trackbars
     l_b = np.array([l_h, l_s, l_v])
     u_b = np.array([u_h, u_s, u_v])
 
+    ##create mask based on defined HSV values
     mask = cv2.inRange(hsv, l_b, u_b)
 
+    ##find contours of the masked image
     cnts, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
+    ##read from Arduino Serial Monitor
     ArduinoSerialMonitor()
 
+    ##loop over the contours found
     for c in cnts:
         area = cv2.contourArea(c)
         if area > 100:
             # min area the colour needs to be
             cv2.drawContours(frame, [c], -1, (255, 0, 0), 3)
             M = cv2.moments(c)
+
+            ##get the x,y coordinates of the centre of the detected colour
             cx = int(M["m10"] / M["m00"])
             cy = int(M["m01"] / M["m00"])
 
+            ##draw a circle at the centre of the detected colour and label it
             cv2.circle(frame, (cx, cy), 3, (255, 255, 255), -1)
             cv2.putText(frame, "blue", (cx - 20, cy - 20), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
+            ##send the coordinates to the Arduino connection function
             ConnectionToC.detectColourPos()
 
+    ##display the resulting frames
     res = cv2.bitwise_and(frame, frame, mask=mask)
     cv2.imshow("live transmission", frame)
     cv2.imshow("mask", mask)
     cv2.imshow("res", res)
+
+    ##exit on 'q' key press
     key = cv2.waitKey(5)
     if key == ord('q'):
         break
 
+##cleanup
 cv2.destroyAllWindows()
