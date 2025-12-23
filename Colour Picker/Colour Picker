@@ -6,7 +6,6 @@ import numpy as np
 def nothing(x):
     pass
 
-
 url = 'Paste url from Arduino Serial Monitor here'
 
 cv2.namedWindow("live transmission", cv2.WINDOW_AUTOSIZE)

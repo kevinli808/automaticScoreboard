@@ -2,32 +2,43 @@
 #include <WiFi.h>
 #include <esp32cam.h>
 
+// Replace with your network credentials
 const char* WIFI_SSID = "Insert Wifi Name here";
 const char* WIFI_PASS = "Insert Wifi Password here";
 
+// Create a web server object that listens for HTTP request on port 80
 WebServer server(80);
 
+// Define camera resolutions
+//NOTE: Higher resolutions may be more laggy
 static auto loRes = esp32cam::Resolution::find(320, 240);
 static auto midRes = esp32cam::Resolution::find(350, 530);
 static auto hiRes = esp32cam::Resolution::find(800, 600);
 
+//Capture and send a JPEG image
 void serveJpg()
 {
+  // Capture a frame
   auto frame = esp32cam::capture();
+
+  // Check if we received a valid frame
   if (frame == nullptr) {
     Serial.println("CAPTURE FAIL");
     server.send(503, "", "");
     return;
   }
+  // Successfully captured a frame
   Serial.printf("CAPTURE OK %dx%d %db\n", frame->getWidth(), frame->getHeight(),
                 static_cast<int>(frame->size()));
 
+  // Send the frame to the client
   server.setContentLength(frame->size());
   server.send(200, "image/jpeg");
   WiFiClient client = server.client();
   frame->writeTo(client);
 }
 
+// Handlers for different resolution requests
 void handleJpgLo()
 {
   if (!esp32cam::Camera.changeResolution(loRes)) {
@@ -55,6 +66,8 @@ void handleJpgMid()
 void setup() {
   Serial.begin(115200);
   Serial.println();
+
+  // Initialize the camera
   {
     using namespace esp32cam;
     Config cfg;
@@ -67,18 +80,23 @@ void setup() {
     Serial.println(ok ? "CAMERA OK" : "CAMERA FAIL");
     Serial.println("Camera Connected");
   }
+
+  // Connect to Wi-Fi
   WiFi.persistent(false);
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
   }
+
+  // Print the IP address (Copy and paste into Main Python Script)
   Serial.print("http://");
   Serial.println(WiFi.localIP());
   Serial.println("  /cam-lo.jpg");
   Serial.println("  /cam-hi.jpg");
   Serial.println("  /cam-mid.jpg");
 
+  // Define server routes
   server.on("/cam-lo.jpg", handleJpgLo);
   server.on("/cam-hi.jpg", handleJpgHi);
   server.on("/cam-mid.jpg", handleJpgMid);
@@ -88,5 +106,6 @@ void setup() {
 
 void loop()
 {
+  // Handle client requests
   server.handleClient();
 }
