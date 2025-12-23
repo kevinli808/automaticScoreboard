@@ -6,6 +6,7 @@
 **Figure 3.**
 
 *ESP-32 CAM Connected with an FTDI-Module*
+
 <img width="786" height="443" alt="image" src="https://github.com/user-attachments/assets/34ca01d6-f963-44c0-ab92-77473cdfa507" />
 
 
@@ -29,7 +30,9 @@
 **Figure 4.**
 
 *The Scoreboard*
+
 <img width="504" height="672" alt="image" src="https://github.com/user-attachments/assets/a2e0d11a-e6f4-42bb-9b40-6d56eed7818e" />
+
 *Note*: This image shows the scoreboard, that the third program controls, outside of its display case. Wires connect the displays, the buzzer, and the buttons to the Arduino, which has a cable that can be connected to a computer
 
 1. Code a program to control the different displays on the scoreboard (Arduino IDE)—Refer to **Scoreboard Control** in the **Appendix** 
@@ -131,5 +134,6 @@
       1. If a ‘5’ is printed, call ‘timeBetweenSets’ from g. (step 7)
       1. If a ‘6’ is printed, delay the program for fifty-nine seconds
       1. If a ‘9’ is printed, delay the program for three seconds
+
 
 
