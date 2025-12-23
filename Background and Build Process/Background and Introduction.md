@@ -28,7 +28,7 @@
 
 &nbsp;	Auto-Score will be the first automatic scoreboard for any sport, with the only other attempt at this concept being a score-counter built for basketball with a much simpler design, consisting of an ultrasonic sensor and a Raspberry Pi. The device is unable to display any other aspects of the game, apart from the score, that a standard basketball scoreboard would normally showcase, meaning that it does not qualify as a scoreboard (Catanzariti, 2019). Even its creator, Catanzariti, admits in a Twitter message that he “probably wouldn't count on the ultrasonic sensor for anything professional – \[individuals would] want something very precise for pro basketball” (direct message, January 30, 2022).
 
-Background and Introduction 
+
 
 &nbsp;	
 
@@ -71,6 +71,7 @@ WoV. (2016, July 26). Signals \[Illustration]. WorldofVolley. Retrieved from htt
 ##### *Videos*
 
 Robojax. (2018, October 31). Using multiple TM1637 4 digits LED Display with Arduino \[Video]. YouTube. Retrieved from https://www.youtube.com/watch?v=27KjMfPH1dk
+
 
 
 
