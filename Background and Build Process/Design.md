@@ -1,5 +1,4 @@
 ### **Design**
-
 &nbsp;	This project is divided into two parts—C++ and Python. C++ is used to interact with the Arduino Uno, the scoreboard, and the buttons whilst Python is used for image processing. The two programs can communicate through the Arduino IDE’s serial monitor. This machine requires three programs for set up, two in C++ and one in Python, and requires one Python program to run.
 
 
@@ -51,8 +50,8 @@
 &nbsp;	By seeing which two of the four ‘X’ values the average coordinate of the colour was between, the program determines which side scored a point and tells the third program to add one to the corresponding side through the serial monitor. This program also stops for fifty-nine seconds when a timeout is called, one hundred seventy-nine seconds when a side wins a set and three seconds when the right button is pressed***1***. The link on line 13 needs to be changed every time the Wi-Fi network the camera is being used on changes. The LH, LS, LV, UH, US, and UV values on lines 16 and 17 need to be changed every time the lighting/colour of the glove changes. The parameters that a score is counted within, on lines 45 and 47, also need to be altered when the referee is replaced by another referee, or the machine is repositioned. This program needs to be rerun every time before the user uses the machine. 
 
 
-
 ***1***Refer to technical difficulties for the purpose of the right button
+
 
 
 
