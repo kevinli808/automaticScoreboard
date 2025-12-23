@@ -2,7 +2,6 @@
 #include <ctype.h>
 #include <SimpleTimer.h>
 #include "SevSeg.h"
-//include libraries
 
 #define CLK1 A5
 #define DIO1 A4
@@ -22,24 +21,29 @@
 //third and forth displays are the sets won
 //fifth display is the timer for timeouts and the time between sets
 
+//NOTE: Change 3 to 2 if you're playing best out of 3 sets instead of best of 5 sets
+int numSetsToWin = 3;
+
 SevSeg sev;
 int incomingByte;
 int lastScore;
+
+//defines each display
 TM1637Display display1(CLK1, DIO1);
 TM1637Display display2(CLK2, DIO2);
 TM1637Display display3(CLK3, DIO3);
 TM1637Display display4(CLK4, DIO4);
 TM1637Display display5(CLK5, DIO5);
+
 //defines pins for each display
 int firstDisplayOnesPlace = 0;
-//int firstDisplayTensPlace = 0;
 int secondDisplayOnesPlace = 0;
-//int secondDisplayTensPlace = 0;
 int thirdDisplayOnesPlace = 0;
 int forthDisplayOnesPlace = 0;
 int fifthDisplayOnesPlace = 0;
 bool onlyOnce = true;
 uint8_t empty[] = { 0x00, 0x00, 0x00, 0x00 };
+
 
 void displaySetup() {
   display1.setBrightness(1);
@@ -60,14 +64,19 @@ void displaySetup() {
   //sets up all the displays
 }
 
+
 void setup()
 {
+  //sets up pins and serial communication
   pinMode(Buzzer, OUTPUT);
   pinMode(TimeoutButton, INPUT_PULLUP);
   pinMode(delayButton, INPUT_PULLUP);
   pinMode(undoButton, INPUT_PULLUP);
+
   Serial.begin(9600);
+
   displaySetup();
+  
   byte numDigits = 1;
   byte digitPins[] = {};
   byte segmentPins[] = {6, 5, 2, 3, 4, 7, 8, 9};
@@ -78,27 +87,37 @@ void setup()
   sev.setBrightness(90);
 }
 
+
+//function for the time between sets
 void timeBetweenSets () {
   Serial.println("5");
   int timeBetweenSet = 180;
+
+  //countdown timer for time between sets
   for (timeBetweenSet; timeBetweenSet >= 0; timeBetweenSet--) {
     display5.showNumberDec(timeBetweenSet, true);
     delay(1000);
   }
 
+  //indicates the next set has started
   Serial.println("the next set has started");
   onlyOnce = true;
   lastScore = 0;
+
+  //sounds buzzer
   digitalWrite(Buzzer, HIGH);
   delay(1000);
   digitalWrite(Buzzer, LOW);
 }
 
+
 void loop()
 {
+  //reads incoming serial data and updates displays accordingly
   if (2 > Serial.available() > 0) {
     incomingByte = Serial.read();
   }
+
   if (incomingByte == 'X') {
     display1.showNumberDec(++firstDisplayOnesPlace, true);
     Serial.println("1");
@@ -126,6 +145,7 @@ void loop()
     Serial.println("4");
   }
 
+  //delay button to prevent multiple inputs 
   if (digitalRead(delayButton) == LOW) {
     if (onlyOnce == true) {
       Serial.println("9");
@@ -133,6 +153,7 @@ void loop()
     }
   }
 
+  //checks for set win conditions
   if (firstDisplayOnesPlace >= 25 or secondDisplayOnesPlace >= 25) {
     float differenceInScore = firstDisplayOnesPlace - secondDisplayOnesPlace;
     if (differenceInScore <= -2 or differenceInScore >= 2) {
@@ -166,52 +187,68 @@ void loop()
     }
   }
 
-  //change 3 to 2 if you're playing best out of 3 sets instead of best of 5 sets
-  if (thirdDisplayOnesPlace == 3) {
+  //ends game if home team wins required sets
+  if (thirdDisplayOnesPlace == numSetsToWin) {
+    //sounds buzzer
     digitalWrite(Buzzer, HIGH);
     delay(1500);
     digitalWrite(Buzzer, LOW);
+
+    //pauses program
     Serial.println("Home has won");
     Serial.println("Game has concluded");
     delay(100000);
   }
 
-  if (forthDisplayOnesPlace == 3) {
+  //Ends game if guest team wins required sets
+  if (forthDisplayOnesPlace == numSetsToWin) {
+    //sounds buzzer
     digitalWrite(Buzzer, HIGH);
     delay(1500);
     digitalWrite(Buzzer, LOW);
+
+    //pauses program
     Serial.println("Guest has won");
     Serial.println("Game has concluded");
     delay(100000);
   }
 
+  //timeout timer
   if (digitalRead(TimeoutButton) == LOW) {
     Serial.println("6");
     int timeout = 60;
     onlyOnce = true;
+
+    //sounds buzzer to indicate timeout start
     digitalWrite(Buzzer, HIGH);
     delay(1000);
     digitalWrite(Buzzer, LOW);
+
+    //starts countdown for timeout
     for (timeout; timeout >= 0; timeout--) {
       display5.showNumberDec(timeout, true);
       delay(1000);
     }
+
+    //sounds buzzer to indicate timeout is over
     digitalWrite(Buzzer, HIGH);
     delay(1000);
     digitalWrite(Buzzer, LOW);
   }
 
+  //undoes last score
   if (digitalRead(undoButton) == LOW) {
     if (lastScore == 1) {
       display1.showNumberDec(--firstDisplayOnesPlace, true);
       lastScore = 0;
     }
-    if (lastScore == 2) {
+    else if (lastScore == 2) {
       display2.showNumberDec(--secondDisplayOnesPlace, true);
       lastScore = 0;
     }
   }
 
+  //updates the sets won display
   float periodNum = forthDisplayOnesPlace + thirdDisplayOnesPlace + 1;
   sev.setNumber(periodNum);
   sev.refreshDisplay();
