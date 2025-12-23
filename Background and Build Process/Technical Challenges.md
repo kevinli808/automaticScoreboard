@@ -1,0 +1,48 @@
+### **Technical Challenges**
+
+&nbsp;	One of the first technical challenges of this project occurs in Python when the program detects a point, as seen in the Main Python Code. If a coordinate is detected on the left side of the screen, an ‘X’ will be printed onto the serial monitor for C++ to read. If a coordinate is detected on the right side of the screen, a ‘Y’ will be printed onto the serial monitor. Every time C++ reads an ‘X’ or a ‘Y’, it will add a point to the corresponding side. However, this system can cause Python, which is printing the X/Ys, to print out thousands of X/Ys onto the serial monitor when a point is signalled. This is due to the program repeatedly checking for a point thousands of times a second. If it detects one, it will immediately send an X/Y to the serial monitor before checking again, which results in thousands of bytes being sent to the serial monitor within seconds due to the incomprehensible speed that Python repeats this loop. C++ would then read these bytes and add thousands of points to the scoreboard.
+
+&nbsp;	In most cases, individuals can implement delays, by forcing the program to sleep, into Python from the ‘Time’ library, which can force Python to only send one byte during a set duration. However, the problem with this solution is that the delay stops every part of the program, including the code that refreshes the camera’s live stream. This becomes a problem when the program ‘wakes up.’ Upon starting up, the code that connects to the webserver takes a couple more milliseconds to refresh the live stream than it takes for the rest of the program to run, which it does without the updated live stream. However, when this happens, the code responsible for the image processing is not aware that the live stream, which is stuck on the frame that the sleep command was called on, has not updated and will detect that another point is scored. This is because the frame that the delay was called on will always show the referee with their hand extended, signalling that a point is scored. This will form a loop where the program would initially detect the referee signalling that a point has been scored, add a point to the scoreboard then pause for a few seconds. The program will then recheck the frame that the delay was called on, which the program thinks is the current frame, to see if there is a patch of colour. This frame shows the referee signalling a point, which in turn, makes this loop repeat, even if the referee finishes their signal, as the program is no longer updating the live footage.
+
+&nbsp;	The first step to a solution is to create a flag to keep track of which function was called most recently. If the last called function is the same as the function being called, it means the function was called twice in a row. In this case, the function being tracked will contain the code that sends an X/Y to the serial monitor. Next, the ‘Threading’ library was implemented to clear the flag after a set duration, since this library grants users the ability to set a timer that can call a function when it reaches zero while allowing the rest of the code to run. This allows the program to call a function after a set duration (Python Software Foundation, 2022). These are the concepts that the solution runs off, which can be seen in lines 22-25, 32, 33, 39-75 of Main Python Code, and an explanation of the code can be found below.
+
+
+
+*When the function, connectionToArduinoX, is called for the first time within thirteen seconds, it will add one to the scoreboard and set a timer for thirteen seconds to run a function. It will also set a string, last\_function, to equal to ‘connectionToArduinoX’. After thirteen seconds have passed, a separate function will run that clears the string, last\_function. Now, if the function, connectionToArduinoX, is called and the last\_function to equal to connectionToArduinoX, nothing will happen.* 
+
+
+
+
+
+&nbsp;	Another technical challenge of this project occurred in the third program, coded in C++, and involved programming a timer that would display a live countdown on a TM1637 Display. Normally, a delay() function would be used in C++ to put the program to sleep for a set amount of milliseconds. The obstacle with this function is that when the program is sleeping, “no other reading of sensors, mathematical calculations, or pin manipulation can go on”, which includes updating the TM1637 Display in charge of the timer, which is supposed to change every second to show the amount of time left on the timer (Arduino, n.d.). 
+
+&nbsp;	The solution was to add a loop that would repeat every second (Refer to lines 79-84 of Scoreboard Control). When a function is run, a new integer, timeBetweenSet, is defined as one hundred eighty and a five is sent over the serial monitor to put the Python program to sleep. Then the program compares timeBetweenSet with zero. If timeBetweenSet is equal or more than zero, the program will complete the following:
+
+1\.	Display timeBetweenSet on the TM1637 Display 
+
+2\.	Subtract one from timeBetweenSet
+
+3\.	Stop for one second
+
+&nbsp;	The program will repeat these steps until timeBetweenSet becomes less than zero and works because timeBetweenSet, which starts as one hundred eighty, is being subtracted by one with each cycle. Each cycle takes one second to complete, with one hundred eighty-one total cycles being completed before the program breaks out of the loop and sounds a buzzer. This only works because the integer, timeBetweenSet, is redefined with every cycle. 
+
+&nbsp;	This solution also worked for timeouts too with the slight change from 180 to 60 as a timeout only lasts for sixty seconds.
+
+
+
+
+
+&nbsp;	Another technical challenge in Python eventually led to the making of the right button. The Python program knows that every time the glove’s current position meets all the parameters for a point for the first time in thirteen seconds, it will stop following points detected in the next thirteen seconds from being recorded, which ensures that it does not accidentally register the referee’s go-ahead for a service as a point. This is because, as stated in the background, the program cannot differentiate between the referee signalling that a point was scored and the referee signalling to give clearance for service. This system works because every single service happens after a point is won—apart from the first service at the start of a set. When it is time for the first serve, the machine will recognize it as a point since a point was not scored before it. 
+
+&nbsp;	The complexity of this problem lies in the unpredictability of this issue. There is no set time after a set begins that a referee must signal for a serve. It can happen in the first three seconds or the first ten seconds; there is no way of knowing. Because of these reasons, the most practical solution was to add a physical button that would need to be pressed by the referee before the signal for the first serve of the set (Refer to note). However, working with a button caused a new issue in C++. Whenever the button was pressed, the program was supposed to send a single ‘9’ into the serial monitor. However, the program ended up sending thousands of 9s into the serial monitor with each button press as C++ recognizes any presses longer than a few milliseconds as more than one press. Normally, this is not a problem because buttons are usually used with Booleans, which are true/false values, where it does not matter if an action is performed more than once. This is because if something is already true and it is redefined as true, nothing happens. This is also the reason why buttons are commonly used with hardware such as lights or switches. 
+
+&nbsp;	The solution was to pair a Boolean with the button to create a flag. The Boolean, onlyOnce, is set to True by default and is redefined back to True every time a timeout starts, a set ends, or a point is scored. When the program recognizes that the button has been pressed, the program will see if onlyOnce is true. If it is, it will print out ‘9’ and set onlyOnce to false. If it is not true, then the program does nothing. This will prevent another ‘9’ from being sent until a timeout starts, a set ends, or a point is scored and runs off a similar concept that prevented more than one point from being scored within a couple of seconds on Python. This solution can be seen from line 123 to line 128 with onlyOnce being redefined to true on lines 87, 101, 106, and 185 of Scoreboard Control. 
+
+&nbsp;	A variation of this solution was used to code the undo button, which used an integer instead of a Boolean. This change was made as besides just using the flag to ensure the button press was executed once, the undo button also used the flag to determine which side to remove a point from. This can be seen from line 204 to line 213 of Scoreboard Control. 
+
+
+
+*NOTE:* This button also acted as an extension to the thirteen-second delay that accounts for the referee signalling for a service after signalling for a point. Thirteen seconds is the average amount of time that it takes for the referee to signal a point and give clearance for a service. It is also the perfect amount of time where the machine can account for points that are immediately scored after the referee gives clearance to serve, which would happen in the event of an ace. However, this time was only determined through three games of the high-school juniors, and occasionally, it may take a few extra seconds for players to pick up the ball. Because of this, the right button can also be pressed before the referee signals for a service mid-game, if they believe that more than thirteen seconds have passed.
+
+
+
