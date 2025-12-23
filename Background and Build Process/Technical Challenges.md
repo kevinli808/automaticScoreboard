@@ -8,10 +8,10 @@
 
 
 
-*When the function, connectionToArduinoX, is called for the first time within thirteen seconds, it will add one to the scoreboard and set a timer for thirteen seconds to run a function. It will also set a string, last\_function, to equal to ‘connectionToArduinoX’. After thirteen seconds have passed, a separate function will run that clears the string, last\_function. Now, if the function, connectionToArduinoX, is called and the last\_function to equal to connectionToArduinoX, nothing will happen.* 
+> When the function, connectionToArduinoX, is called for the first time within thirteen seconds, it will add one to the scoreboard and set a timer for thirteen seconds to run a function. It will also set a string, last\_function, to equal to ‘connectionToArduinoX’. After thirteen seconds have passed, a separate function will run that clears the string, last\_function. Now, if the function, connectionToArduinoX, is called and the last\_function to equal to connectionToArduinoX, nothing will happen.
 
 
-
+___
 
 
 &nbsp;	Another technical challenge of this project occurred in the third program, coded in C++, and involved programming a timer that would display a live countdown on a TM1637 Display. Normally, a delay() function would be used in C++ to put the program to sleep for a set amount of milliseconds. The obstacle with this function is that when the program is sleeping, “no other reading of sensors, mathematical calculations, or pin manipulation can go on”, which includes updating the TM1637 Display in charge of the timer, which is supposed to change every second to show the amount of time left on the timer (Arduino, n.d.). 
@@ -30,7 +30,7 @@
 
 
 
-
+___
 
 &nbsp;	Another technical challenge in Python eventually led to the making of the right button. The Python program knows that every time the glove’s current position meets all the parameters for a point for the first time in thirteen seconds, it will stop following points detected in the next thirteen seconds from being recorded, which ensures that it does not accidentally register the referee’s go-ahead for a service as a point. This is because, as stated in the background, the program cannot differentiate between the referee signalling that a point was scored and the referee signalling to give clearance for service. This system works because every single service happens after a point is won—apart from the first service at the start of a set. When it is time for the first serve, the machine will recognize it as a point since a point was not scored before it. 
 
@@ -43,6 +43,7 @@
 
 
 *NOTE:* This button also acted as an extension to the thirteen-second delay that accounts for the referee signalling for a service after signalling for a point. Thirteen seconds is the average amount of time that it takes for the referee to signal a point and give clearance for a service. It is also the perfect amount of time where the machine can account for points that are immediately scored after the referee gives clearance to serve, which would happen in the event of an ace. However, this time was only determined through three games of the high-school juniors, and occasionally, it may take a few extra seconds for players to pick up the ball. Because of this, the right button can also be pressed before the referee signals for a service mid-game, if they believe that more than thirteen seconds have passed.
+
 
 
 
